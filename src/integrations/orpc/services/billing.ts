@@ -6,6 +6,14 @@ import * as schema from "@/integrations/drizzle/schema";
 import { env } from "@/utils/env";
 import { type Plan, getCurrentMonth } from "@/utils/plan";
 
+/**
+ * Returns true when Stripe is configured and billing is active.
+ * When false, all users are treated as "pro" (no restrictions).
+ */
+export function isBillingEnabled(): boolean {
+	return Boolean(env.STRIPE_SECRET_KEY);
+}
+
 function getStripe(): Stripe {
 	if (!env.STRIPE_SECRET_KEY) {
 		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Stripe is not configured" });
@@ -15,6 +23,16 @@ function getStripe(): Stripe {
 
 export const billingService = {
 	getStatus: async (input: { userId: string }) => {
+		// When Stripe is not configured, treat every user as "pro" (no restrictions)
+		if (!isBillingEnabled()) {
+			return {
+				plan: "pro" as Plan,
+				stripeCustomerId: null,
+				stripeSubscriptionId: null,
+				trialEndsAt: null,
+			};
+		}
+
 		const [userRecord] = await db
 			.select({
 				plan: schema.user.plan,
@@ -37,6 +55,12 @@ export const billingService = {
 	},
 
 	createCheckoutSession: async (input: { userId: string; email: string; successUrl: string; cancelUrl: string }) => {
+		if (!isBillingEnabled()) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Billing is not configured. All features are unlocked by default.",
+			});
+		}
+
 		const stripe = getStripe();
 
 		if (!env.STRIPE_PRO_PRICE_ID) {
@@ -71,6 +95,12 @@ export const billingService = {
 	},
 
 	createPortalSession: async (input: { userId: string; returnUrl: string }) => {
+		if (!isBillingEnabled()) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Billing is not configured. All features are unlocked by default.",
+			});
+		}
+
 		const stripe = getStripe();
 
 		const [userRecord] = await db
@@ -92,6 +122,10 @@ export const billingService = {
 	},
 
 	handleWebhookEvent: async (input: { payload: string; signature: string }) => {
+		if (!isBillingEnabled()) {
+			return { received: true };
+		}
+
 		const stripe = getStripe();
 
 		if (!env.STRIPE_WEBHOOK_SECRET) {
