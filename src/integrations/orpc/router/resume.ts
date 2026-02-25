@@ -1,9 +1,27 @@
+import { ORPCError } from "@orpc/client";
 import z from "zod";
 import { sampleResumeData } from "@/schema/resume/sample";
+import { getPlanLimits, type Plan } from "@/utils/plan";
 import { generateRandomName, slugify } from "@/utils/string";
 import { protectedProcedure, publicProcedure, serverOnlyProcedure } from "../context";
 import { resumeDto } from "../dto/resume";
+import { billingService, isBillingEnabled } from "../services/billing";
 import { resumeService } from "../services/resume";
+
+async function enforceResumeLimit(userId: string) {
+	if (!isBillingEnabled()) return;
+
+	const { plan } = await billingService.getStatus({ userId });
+	const limits = getPlanLimits(plan as Plan);
+	const resumes = await resumeService.list({ userId, tags: [], sort: "lastUpdatedAt" });
+
+	if (resumes.length >= limits.maxResumes) {
+		throw new ORPCError("PLAN_LIMIT_REACHED", {
+			status: 403,
+			message: `Your plan allows up to ${limits.maxResumes} resume(s). Upgrade to Pro for unlimited resumes.`,
+		});
+	}
+}
 
 const tagsRouter = {
 	list: protectedProcedure
@@ -141,8 +159,14 @@ export const resumeRouter = {
 				message: "A resume with this slug already exists.",
 				status: 400,
 			},
+			PLAN_LIMIT_REACHED: {
+				message: "You have reached the maximum number of resumes for your plan.",
+				status: 403,
+			},
 		})
 		.handler(async ({ context, input }) => {
+			await enforceResumeLimit(context.user.id);
+
 			return await resumeService.create({
 				name: input.name,
 				slug: input.slug,
@@ -171,8 +195,14 @@ export const resumeRouter = {
 				message: "A resume with this slug already exists.",
 				status: 400,
 			},
+			PLAN_LIMIT_REACHED: {
+				message: "You have reached the maximum number of resumes for your plan.",
+				status: 403,
+			},
 		})
 		.handler(async ({ context, input }) => {
+			await enforceResumeLimit(context.user.id);
+
 			const name = generateRandomName();
 			const slug = slugify(name);
 
@@ -346,7 +376,15 @@ export const resumeRouter = {
 		})
 		.input(resumeDto.duplicate.input)
 		.output(resumeDto.duplicate.output)
+		.errors({
+			PLAN_LIMIT_REACHED: {
+				message: "You have reached the maximum number of resumes for your plan.",
+				status: 403,
+			},
+		})
 		.handler(async ({ context, input }) => {
+			await enforceResumeLimit(context.user.id);
+
 			const original = await resumeService.getById({ id: input.id, userId: context.user.id });
 
 			return await resumeService.create({

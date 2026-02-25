@@ -35,6 +35,7 @@ import { Route as DashboardSettingsProfileRouteImport } from "./routes/dashboard
 import { Route as DashboardSettingsPreferencesRouteImport } from "./routes/dashboard/settings/preferences";
 import { Route as DashboardSettingsDangerZoneRouteImport } from "./routes/dashboard/settings/danger-zone";
 import { Route as DashboardSettingsApiKeysRouteImport } from "./routes/dashboard/settings/api-keys";
+import { Route as DashboardSettingsBillingRouteImport } from "./routes/dashboard/settings/billing";
 import { Route as DashboardSettingsAiRouteImport } from "./routes/dashboard/settings/ai";
 import { Route as ApiRpcSplatRouteImport } from "./routes/api/rpc.$";
 import { Route as ApiOpenapiSplatRouteImport } from "./routes/api/openapi.$";
@@ -174,6 +175,12 @@ const DashboardSettingsApiKeysRoute =
     path: "/settings/api-keys",
     getParentRoute: () => DashboardRouteRoute,
   } as any);
+const DashboardSettingsBillingRoute =
+  DashboardSettingsBillingRouteImport.update({
+    id: "/settings/billing",
+    path: "/settings/billing",
+    getParentRoute: () => DashboardRouteRoute,
+  } as any);
 const DashboardSettingsAiRoute = DashboardSettingsAiRouteImport.update({
   id: "/settings/ai",
   path: "/settings/ai",
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
   "/api/rpc/$": typeof ApiRpcSplatRoute;
   "/dashboard/settings/ai": typeof DashboardSettingsAiRoute;
   "/dashboard/settings/api-keys": typeof DashboardSettingsApiKeysRoute;
+  "/dashboard/settings/billing": typeof DashboardSettingsBillingRoute;
   "/dashboard/settings/danger-zone": typeof DashboardSettingsDangerZoneRoute;
   "/dashboard/settings/preferences": typeof DashboardSettingsPreferencesRoute;
   "/dashboard/settings/profile": typeof DashboardSettingsProfileRoute;
@@ -254,6 +262,7 @@ export interface FileRoutesByTo {
   "/api/rpc/$": typeof ApiRpcSplatRoute;
   "/dashboard/settings/ai": typeof DashboardSettingsAiRoute;
   "/dashboard/settings/api-keys": typeof DashboardSettingsApiKeysRoute;
+  "/dashboard/settings/billing": typeof DashboardSettingsBillingRoute;
   "/dashboard/settings/danger-zone": typeof DashboardSettingsDangerZoneRoute;
   "/dashboard/settings/preferences": typeof DashboardSettingsPreferencesRoute;
   "/dashboard/settings/profile": typeof DashboardSettingsProfileRoute;
@@ -288,6 +297,7 @@ export interface FileRoutesById {
   "/api/rpc/$": typeof ApiRpcSplatRoute;
   "/dashboard/settings/ai": typeof DashboardSettingsAiRoute;
   "/dashboard/settings/api-keys": typeof DashboardSettingsApiKeysRoute;
+  "/dashboard/settings/billing": typeof DashboardSettingsBillingRoute;
   "/dashboard/settings/danger-zone": typeof DashboardSettingsDangerZoneRoute;
   "/dashboard/settings/preferences": typeof DashboardSettingsPreferencesRoute;
   "/dashboard/settings/profile": typeof DashboardSettingsProfileRoute;
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | "/api/rpc/$"
     | "/dashboard/settings/ai"
     | "/dashboard/settings/api-keys"
+    | "/dashboard/settings/billing"
     | "/dashboard/settings/danger-zone"
     | "/dashboard/settings/preferences"
     | "/dashboard/settings/profile"
@@ -351,6 +362,7 @@ export interface FileRouteTypes {
     | "/api/rpc/$"
     | "/dashboard/settings/ai"
     | "/dashboard/settings/api-keys"
+    | "/dashboard/settings/billing"
     | "/dashboard/settings/danger-zone"
     | "/dashboard/settings/preferences"
     | "/dashboard/settings/profile"
@@ -384,6 +396,7 @@ export interface FileRouteTypes {
     | "/api/rpc/$"
     | "/dashboard/settings/ai"
     | "/dashboard/settings/api-keys"
+    | "/dashboard/settings/billing"
     | "/dashboard/settings/danger-zone"
     | "/dashboard/settings/preferences"
     | "/dashboard/settings/profile"
@@ -593,6 +606,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DashboardSettingsApiKeysRouteImport;
       parentRoute: typeof DashboardRouteRoute;
     };
+    "/dashboard/settings/billing": {
+      id: "/dashboard/settings/billing";
+      path: "/settings/billing";
+      fullPath: "/dashboard/settings/billing";
+      preLoaderRoute: typeof DashboardSettingsBillingRouteImport;
+      parentRoute: typeof DashboardRouteRoute;
+    };
     "/dashboard/settings/ai": {
       id: "/dashboard/settings/ai";
       path: "/settings/ai";
@@ -673,6 +693,7 @@ interface DashboardRouteRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute;
   DashboardSettingsAiRoute: typeof DashboardSettingsAiRoute;
   DashboardSettingsApiKeysRoute: typeof DashboardSettingsApiKeysRoute;
+  DashboardSettingsBillingRoute: typeof DashboardSettingsBillingRoute;
   DashboardSettingsDangerZoneRoute: typeof DashboardSettingsDangerZoneRoute;
   DashboardSettingsPreferencesRoute: typeof DashboardSettingsPreferencesRoute;
   DashboardSettingsProfileRoute: typeof DashboardSettingsProfileRoute;
@@ -684,6 +705,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardSettingsAiRoute: DashboardSettingsAiRoute,
   DashboardSettingsApiKeysRoute: DashboardSettingsApiKeysRoute,
+  DashboardSettingsBillingRoute: DashboardSettingsBillingRoute,
   DashboardSettingsDangerZoneRoute: DashboardSettingsDangerZoneRoute,
   DashboardSettingsPreferencesRoute: DashboardSettingsPreferencesRoute,
   DashboardSettingsProfileRoute: DashboardSettingsProfileRoute,

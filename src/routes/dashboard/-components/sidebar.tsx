@@ -1,5 +1,6 @@
 import {
 	BrainIcon,
+	CreditCardIcon,
 	GearSixIcon,
 	KeyIcon,
 	ReadCvLogoIcon,
@@ -69,6 +70,11 @@ const settingsSidebarItems = [
 		icon: <BrainIcon />,
 		label: "Artificial Intelligence",
 		href: "/dashboard/settings/ai",
+	},
+	{
+		icon: <CreditCardIcon />,
+		label: "Billing",
+		href: "/dashboard/settings/billing",
 	},
 	{
 		icon: <WarningIcon />,

@@ -1,5 +1,8 @@
+import { ORPCError } from "@orpc/client";
 import z from "zod";
+import { getPlanLimits, type Plan } from "@/utils/plan";
 import { protectedProcedure, publicProcedure } from "../context";
+import { billingService, isBillingEnabled } from "../services/billing";
 import { printerService } from "../services/printer";
 import { resumeService } from "../services/resume";
 
@@ -19,11 +22,29 @@ export const printerRouter = {
 		.output(z.object({ url: z.string().describe("The URL to download the generated PDF file.") }))
 		.handler(async ({ input, context }) => {
 			const { id, data, userId } = await resumeService.getByIdForPrinter({ id: input.id });
+
+			// Enforce download limits for authenticated users when billing is enabled
+			if (context.user && isBillingEnabled()) {
+				const { plan } = await billingService.getStatus({ userId: context.user.id });
+				const limits = getPlanLimits(plan as Plan);
+				const { count } = await billingService.getUsage({ userId: context.user.id, type: "pdf_download" });
+
+				if (count >= limits.maxPdfDownloadsPerMonth) {
+					throw new ORPCError("PLAN_LIMIT_REACHED", {
+						status: 403,
+						message: `You have reached the maximum of ${limits.maxPdfDownloadsPerMonth} PDF downloads this month. Upgrade to Pro for unlimited downloads.`,
+					});
+				}
+			}
+
 			const url = await printerService.printResumeAsPDF({ id, data, userId });
 
-			if (!context.user) {
-				await resumeService.statistics.increment({ id: input.id, downloads: true });
+			// Track usage for authenticated users, track statistics for public downloads
+			if (context.user && isBillingEnabled()) {
+				await billingService.incrementUsage({ userId: context.user.id, type: "pdf_download" });
 			}
+
+			await resumeService.statistics.increment({ id: input.id, downloads: true });
 
 			return { url };
 		}),
